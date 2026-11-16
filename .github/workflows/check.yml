@@ -33,9 +33,9 @@ jobs:
         with:
           python-version: '3.13'
       - name: Build pinned Switch TLS dependency
-        run: sh usb-resident/prepare_mbedtls.sh "$RUNNER_TEMP/mbedtls-switch"
+        run: sh firmware/usb-resident/prepare_mbedtls.sh "$RUNNER_TEMP/mbedtls-switch"
       - name: Build SD install package
-        run: python assemble_release.py "$RUNNER_TEMP/release" --mbedtls-root "$RUNNER_TEMP/mbedtls-switch"
+        run: python scripts/assemble_release.py "$RUNNER_TEMP/release" --mbedtls-root "$RUNNER_TEMP/mbedtls-switch"
       - name: Bundle matching dependency source
         run: python scripts/dependency_source.py "$RUNNER_TEMP/mbedtls-switch" "$RUNNER_TEMP/release/switch-control-0.5.0-mbedtls-source.tar.gz"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

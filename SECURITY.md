@@ -8,7 +8,7 @@ The native API uses a per-device certificate and bearer token. Check the physica
 setup screen's certificate fingerprint before trusting a certificate obtained
 from the network. The token is a full-access credential. The PSK interface uses
 TLS 1.3 plus a separate command-authentication key. There is no plaintext fallback
-on these endpoints. The old `wifi_controller.py` is retained as a framing library
+on these endpoints. The old `switch_control/wifi_controller.py` is retained as a framing library
 and legacy development client; do not use its plaintext transport.
 
 Keep `/config/za-usb-control/` and local client profiles private. They contain keys

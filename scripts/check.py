@@ -13,7 +13,7 @@ if not getattr(ssl, 'HAS_PSK', False) or not hasattr(ssl.SSLContext, 'set_psk_se
     raise SystemExit('Python 3.13+ with OpenSSL PSK support is required.')
 subprocess.run([sys.executable, str(ROOT/'scripts/generate_schemas.py'), '--check'], check=True)
 sys.path.insert(0, str(ROOT))
-suite = unittest.defaultTestLoader.discover(str(ROOT), pattern='test_*.py')
+suite = unittest.defaultTestLoader.discover(str(ROOT/'tests'), pattern='test_*.py', top_level_dir=str(ROOT))
 result = unittest.TextTestRunner(verbosity=2).run(suite)
 if result.skipped:
     print('Incomplete coverage: skipped tests are not allowed.', file=sys.stderr)

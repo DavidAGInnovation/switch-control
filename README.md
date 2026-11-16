@@ -5,7 +5,7 @@ Streamable HTTP MCP run directly on the console: no PC bridge or cloud service
 is needed. A Python command-line client is included.
 
 [Download v0.5.0](https://github.com/DavidAGInnovation/switch-control/releases/tag/v0.5.0)
-· [Installation and API](RELEASE.md) · [License notices](THIRD_PARTY.md)
+· [Installation and API](docs/RELEASE.md) · [License notices](docs/THIRD_PARTY.md)
 
 ## Features
 
@@ -51,11 +51,11 @@ Copy the two provisioned 32-byte binary keys from the SD card into a private
 local directory, then run from this repository:
 
 ```sh
-python3 native_client.py configure --host auto \
+python3 -m switch_control configure --host auto \
   --key-file /private/path/wifi.key --tls-key-file /private/path/tls.key /private/path/profile
-python3 native_client.py --config /private/path/profile/config.json status
-python3 native_client.py --config /private/path/profile/config.json call tap_buttons '{"buttons":["A"]}'
-python3 native_client.py --config /private/path/profile/config.json screenshot /private/path/screen.jpg
+python3 -m switch_control --config /private/path/profile/config.json status
+python3 -m switch_control --config /private/path/profile/config.json call tap_buttons '{"buttons":["A"]}'
+python3 -m switch_control --config /private/path/profile/config.json screenshot /private/path/screen.jpg
 ```
 
 Use an explicit IP instead of `auto` when multicast discovery is unavailable.
@@ -70,14 +70,14 @@ The service and setup helper build with Docker using the pinned
 Run from a fresh checkout with Docker running:
 
 ```sh
-sh usb-resident/prepare_mbedtls.sh /absolute/new/mbedtls-switch
-python3 assemble_release.py /absolute/new/release --mbedtls-root /absolute/new/mbedtls-switch
+sh firmware/usb-resident/prepare_mbedtls.sh /absolute/new/mbedtls-switch
+python3 scripts/assemble_release.py /absolute/new/release --mbedtls-root /absolute/new/mbedtls-switch
 ```
 
 Output paths must not exist. The ZIP contains SD files, the optional helper,
 project source, client scripts, license notices, build metadata and a SHA-256
 manifest. No provisioned keys or certificates are bundled. The matching Mbed TLS
-source is also published as a separate release asset; see [THIRD_PARTY.md](THIRD_PARTY.md).
+source is also published as a separate release asset; see [THIRD_PARTY.md](docs/THIRD_PARTY.md).
 
 To run the full host suite (C compiler, OpenSSL development headers, pkg-config,
 Git, Make and a PSK-capable Python are required):
@@ -88,7 +88,7 @@ ZA_MBEDTLS_HOST_ROOT=/absolute/new/mbedtls-host python3 scripts/check.py
 ```
 
 CI runs the host tests with no skipped tests and builds the Switch package.
-The generated C tool schemas are checked against `control.py`.
+The generated C tool schemas are checked against `switch_control/control.py`.
 
 ## Tested scope and limits
 
@@ -109,18 +109,25 @@ for Atmosphère writes. It does not mount NAND or save partitions.
 
 ## Project layout
 
-`usb-resident/` contains the service, `setup/` the optional provisioning helper,
-`reader/` read-only Atmosphère memory diagnostics, and the root Python files the
-clients and tests. Compatibility keys and the PSK identity retain their original
-Z-A names. The reader also retains build-gated Pokémon Legends: Z-A diagnostic
-commands; controller and native API features work independently of that game.
-See the [reader details](RELEASE.md#memory-diagnostics) before using foreground
+| Directory | Contents |
+| --- | --- |
+| `firmware/` | Resident service, read-only reader, setup helper and maintainer updater. |
+| `switch_control/` | Python client package; run the HTTPS CLI with `python3 -m switch_control`. |
+| `tests/` | Host unit and integration tests. |
+| `scripts/` | Build, packaging, schema generation and verification tools. |
+| `docs/` | Detailed installation/API documentation and dependency license review. |
+| `licenses/` | Third-party license texts and attribution notices. |
+
+Compatibility keys and the PSK identity retain their original Z-A names. The
+reader also retains build-gated Pokémon Legends: Z-A diagnostic commands;
+controller and native API features work independently of that game. See the
+[reader details](docs/RELEASE.md#memory-diagnostics) before using foreground
 attachment.
 
-`file-update/` and `install_update.py` retain the guarded updater's source for
-maintainers. They require an explicitly reviewed prior executable fingerprint
-and matching recovery app. This first public package uses SD installation;
-it contains no updater pinned to a private development build.
+`firmware/file-update/` and `switch_control/install_update.py` retain the guarded
+updater's source for maintainers. They require an explicitly reviewed prior
+executable fingerprint and matching recovery app. The public package uses SD
+installation; it contains no updater pinned to a private development build.
 
 Project code is GPL-3.0-only with the additional libnx linking permission in
 [LICENSE-EXCEPTION](LICENSE-EXCEPTION). Linked libraries retain their own licenses

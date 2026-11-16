@@ -7,7 +7,7 @@ private information removed.
 Run `scripts/check.py` with a host-built Mbed TLS tree and build the Switch package
 before submitting changes. Tests should cover behavior and failure paths, not
 merely repeat implementation details. Keep the native MCP schema synchronized
-with `control.py` using `scripts/generate_schemas.py`.
+with `switch_control/control.py` using `scripts/generate_schemas.py`.
 
 Contributions use GPL-3.0-only with the libnx linking permission in
 `LICENSE-EXCEPTION`, with third-party notices preserved. Do not add
