@@ -122,5 +122,9 @@ maintainers. They require an explicitly reviewed prior executable fingerprint
 and matching recovery app. This first public package uses SD installation;
 it contains no updater pinned to a private development build.
 
-Project code is GPL-3.0-only. Linked libraries retain their own licenses and
-attributions. This project is independent of Nintendo and Atmosphère.
+Project code is GPL-3.0-only with the additional libnx linking permission in
+[LICENSE-EXCEPTION](LICENSE-EXCEPTION). Linked libraries retain their own licenses
+and attributions. This project is independent of Nintendo and Atmosphère.
+
+This product includes software developed by Jonathan Stone and Jason R. Thorpe
+for the NetBSD Project.

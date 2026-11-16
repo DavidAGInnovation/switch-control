@@ -11,7 +11,7 @@ VERSION = '0.5.0'
 
 def source_files():
     """Explicit source allowlist; deployment evidence and build outputs stay out."""
-    for name in ['LICENSE', 'README.md', 'RELEASE.md', 'THIRD_PARTY.md', 'SECURITY.md',
+    for name in ['LICENSE', 'LICENSE-EXCEPTION', 'README.md', 'RELEASE.md', 'THIRD_PARTY.md', 'SECURITY.md',
                  'CONTRIBUTING.md', '.gitignore']:
         yield ROOT/name
     yield from ROOT.glob('*.py')
@@ -38,6 +38,7 @@ def package(service, setup, build_info, output):
         'RELEASE.md': (ROOT/'RELEASE.md').read_bytes(),
         'SECURITY.md': (ROOT/'SECURITY.md').read_bytes(),
         'LICENSE': (ROOT/'LICENSE').read_bytes(),
+        'LICENSE-EXCEPTION': (ROOT/'LICENSE-EXCEPTION').read_bytes(),
         'THIRD_PARTY.md': (ROOT/'THIRD_PARTY.md').read_bytes(),
         'build/service.json': Path(build_info).read_bytes(),
     }

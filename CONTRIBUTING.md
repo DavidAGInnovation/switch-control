@@ -9,6 +9,7 @@ before submitting changes. Tests should cover behavior and failure paths, not
 merely repeat implementation details. Keep the native MCP schema synchronized
 with `control.py` using `scripts/generate_schemas.py`.
 
-Contributions use GPL-3.0-only, with third-party notices preserved. Do not add
+Contributions use GPL-3.0-only with the libnx linking permission in
+`LICENSE-EXCEPTION`, with third-party notices preserved. Do not add
 Nintendo SDK material, keys, game data, console backups or incompatible copied
 code. Keep generated build products and device-specific evidence out of Git.

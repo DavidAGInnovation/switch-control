@@ -1,0 +1,16 @@
+Switch Control — additional permission under GNU GPL version 3, section 7
+
+If you modify this Program, or any covered work, by linking or combining it with
+libnx (or a modified version of that library), including its imported BSD and
+ISC components, the licensors of this Program grant you additional permission
+to convey the resulting work under the terms of GNU GPL version 3 together with
+this permission.
+
+Corresponding Source for a non-source form of such a combination shall include
+the source code for the parts of libnx used as well as that of the covered work.
+This permission does not change the licenses or obligations applicable to libnx
+or its imported components, including preservation of notices and required
+acknowledgments. All other GNU GPL version 3 requirements continue to apply.
+
+This additional permission applies to Switch Control's project code in this
+repository. Third-party dependencies retain their own licenses.

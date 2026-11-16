@@ -1,8 +1,9 @@
 # Licensing and dependency review
 
-The Switch Control project source is distributed under **GPL-3.0-only**, retaining
+The Switch Control project source is distributed under **GPL-3.0-only with a libnx linking exception**, retaining
 the GPLv3 license from the original controller module. The full text is in
-[LICENSE](LICENSE). This standalone repository starts with a clean history; its
+[LICENSE](LICENSE); the additional permission is in
+[LICENSE-EXCEPTION](LICENSE-EXCEPTION). This standalone repository starts with a clean history; its
 controller and read-only reader originated in the same project's private SD
 maintenance workspace. No console backup history, Nintendo SDK source, game
 assets, keys or provisioned certificates are included.
@@ -12,8 +13,8 @@ copyright notices are preserved in `licenses/` and in every release ZIP.
 
 | Component | Pinned version/source | License treatment |
 | --- | --- | --- |
-| Mbed TLS | 3.6.7, `068ff080b369adfac81509f9b57b2afabaf82dc5` | Upstream offers Apache-2.0 OR GPL-2.0-or-later; distributed here under the latter, choosing GPLv3 for the combined program. Full dual-license notice retained. |
-| libnx | 4.12.0, `7644c9b26099aa2d2145bc72a21ee24190e92085` | ISC, with BSD/ISC notices in imported networking headers; full notices retained. |
+| Mbed TLS | 3.6.7, `068ff080b369adfac81509f9b57b2afabaf82dc5` | Upstream offers Apache-2.0 OR GPL-2.0-or-later; Apache-2.0 is selected for this distribution. Full dual-license notice retained. |
+| libnx | 4.12.0, `7644c9b26099aa2d2145bc72a21ee24190e92085` | ISC, with BSD-3-Clause, BSD-4-Clause and ISC notices in imported networking headers; full notices and the required acknowledgment retained. |
 | newlib / libm | devkitA64 package 4.6.0.20260123-4 | Collection of permissive notices; full `COPYING.NEWLIB` retained. Source files can carry additional notices. |
 | GCC runtime | devkitA64 GCC 15.2.0-7 | GPLv3 with GCC Runtime Library Exception 3.1; both GPLv3 and the exception are supplied. |
 
@@ -22,6 +23,16 @@ The toolchain is `devkitpro/devkita64:20260219`, OCI index digest
 Its compiler, build tools and Docker image are build dependencies, not bundled
 as executables in the release. Host tests use the platform C compiler and
 OpenSSL; those host libraries are not linked into the Switch release.
+
+The imported `net/if_media.h` has a BSD-4-Clause advertising acknowledgment.
+Rather than treat every libnx file as ISC, this project grants a specific
+GPLv3 section 7 linking permission for libnx and preserves the BSD terms.
+The permission requires the corresponding libnx source with binaries; the
+release supplies that pinned source archive. Mbed TLS is used under Apache-2.0,
+with its notices and configuration modification notice retained.
+
+This product includes software developed by Jonathan Stone and Jason R. Thorpe
+for the NetBSD Project.
 
 ## Corresponding source and modifications
 

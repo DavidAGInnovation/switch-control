@@ -12,7 +12,7 @@ class ReleasePackageTest(unittest.TestCase):
     def test_manifest_install_tree_and_private_file_exclusion(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
-            for name in ['LICENSE','README.md','RELEASE.md','THIRD_PARTY.md','SECURITY.md','CONTRIBUTING.md','.gitignore']:
+            for name in ['LICENSE','LICENSE-EXCEPTION','README.md','RELEASE.md','THIRD_PARTY.md','SECURITY.md','CONTRIBUTING.md','.gitignore']:
                 (root/name).write_text(name)
             for name in ['native_client.py','discovery.py','wifi_controller.py','wifi_tls_controller.py','sd_files.py','control.py']:
                 (root/name).write_text('# client source\n')
