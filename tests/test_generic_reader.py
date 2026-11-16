@@ -29,15 +29,11 @@ static bool active_process;
     ((void)(service), (void)(cmd), (void)(address), \
      (info)=(MemoryInfo){.addr=0x5000,.size=mapping_failure?0:0x200,.type=3,.perm=3}, 0)
 static u8 bytes[0x10000]; static char response[sizeof(bytes)*2+2], output[sizeof(response)];
-static const u8 expected_build[8]={0xb1,0xf1,0x2f,0xd9,0x19,0xea,0xe8,0x6a};
-static Metadata target; static int reads, game_calls, metadata_failure; static u64 last_address;
+static Metadata target; static int reads, metadata_failure; static u64 last_address;
 static bool send_all(int fd,const char *data,size_t n){(void)fd;memcpy(output,data,n);output[n]=0;return true;}
 static bool error_reply(int fd,Result rc){(void)rc;return send_all(fd,"ERR native\n",11);}
 static Result metadata(Metadata *m){if(metadata_failure)return 1;*m=target;return 0;}
 static Result read_memory(u64 a,void *p,size_t n){reads++;last_address=a;memset(p,0xAB,n);return 0;}
-static bool capture_templates(int fd,const Metadata *m){(void)fd;(void)m;game_calls++;return true;}
-static bool reticle_names(int fd,const Metadata *m){(void)fd;(void)m;game_calls++;return true;}
-static bool class_objects(int fd,u64 base,u64 desc){(void)fd;(void)base;(void)desc;game_calls++;return true;}
 static u64 reader_started; static bool sleep_disabled; static Result sleep_set_result, sleep_query_result;
 static Result appletIsAutoSleepDisabled(bool *p){(void)p;return 0;}
 static u64 svcGetSystemTick(void){return 0;} static u64 armTicksToNs(u64 x){return x;}
@@ -75,13 +71,17 @@ int main(void) {
     assert(command(0,"peekAbsolute 0xFFFFFFFFFFFFFFFF 1") && !strcmp(output,"ERR address-overflow\n") && reads==count);
     target.main.base=UINT64_MAX-4;
     assert(command(0,"peekMain 0x10 1") && !strcmp(output,"ERR address-overflow\n") && reads==count);
-    const char *specific[]={"getActors","getTagComponents","findCaptureTemplates","findReticleNames","findClass 0x3CE2B18"};
-    for(size_t i=0;i<sizeof(specific)/sizeof(*specific);i++)
-        assert(command(0,specific[i]) && !strcmp(output,"ERR wrong-game-or-build\n") && game_calls==0);
-    target.title_id=0x0100F43008C44000ULL; memcpy(target.build_id,expected_build,8);
-    assert(command(0,"getActors") && game_calls==1);
-    target.build_id[0]^=1;
-    assert(command(0,"getActors") && !strcmp(output,"ERR wrong-game-or-build\n") && game_calls==1);
+    // Removed commands must stay unavailable, without triggering memory scans.
+    const char *removed[]={"getActors","getTagComponents","findCaptureTemplates","findReticleNames","findClass 0x1234"};
+    for(unsigned target_index=0;target_index<2;target_index++){
+        target.title_id=0x0100000000005678ULL+target_index;
+        memset(target.build_id,target_index?0xFF:0,sizeof(target.build_id));
+        assert(command(0,"getFullBuildID") && strlen(output)==65);
+        for(size_t i=0;i<sizeof(removed)/sizeof(*removed);i++){
+            assert(command(0,removed[i]) && !strcmp(output,"ERR invalid-command\n"));
+            assert(reads==count);
+        }
+    }
     metadata_failure=1;
     assert(command(0,"peekAbsolute 0x5010 1") && !strcmp(output,"ERR native\n") && reads==count);
     return 0;

@@ -168,9 +168,10 @@ Commands: `openForeground`, `getProcessID`, `getTitleID`, `getBuildID` (eight
 bytes), `getFullBuildID`, `getMainNsoBase`, `getMainNsoSize`, `getHeapBase`,
 `getHeapSize`, `queryMemory ADDRESS`, `peekMain OFFSET SIZE`, and
 `peekAbsolute ADDRESS SIZE`. Addresses/offsets are hexadecimal and byte counts
-are decimal, limited to 65536. Higher-level Z-A object/capture diagnostics are
-restricted to their recognized title and build. They are not a universal game
-object model. See `firmware/reader/source/main.c` for the compatibility command set.
+are decimal, limited to 65536. The reader does not scan game-specific objects or
+interpret game data structures. Its commands use the selected process's reported
+metadata and mappings, without title or build restrictions. See
+`firmware/reader/source/main.c` for the command dispatcher.
 
 ## Maintainer updater source
 

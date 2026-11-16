@@ -118,11 +118,12 @@ for Atmosphère writes. It does not mount NAND or save partitions.
 | `docs/` | Detailed installation/API documentation and dependency license review. |
 | `licenses/` | Third-party license texts and attribution notices. |
 
-Compatibility keys and the PSK identity retain their original Z-A names. The
-reader also retains build-gated Pokémon Legends: Z-A diagnostic commands;
-controller and native API features work independently of that game. See the
+The read-only reader provides process metadata, memory mappings and bounded
+byte reads through Atmosphère's selected process. It uses no game-specific
+layouts, addresses or version checks. See the
 [reader details](docs/RELEASE.md#memory-diagnostics) before using foreground
-attachment.
+attachment. Credential paths and the PSK identity retain their historical names
+for compatibility with paired consoles.
 
 `firmware/file-update/` and `switch_control/install_update.py` retain the guarded
 updater's source for maintainers. They require an explicitly reviewed prior

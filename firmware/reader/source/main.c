@@ -26,7 +26,6 @@ static Result sleep_set_result, sleep_query_result;
 static bool sleep_disabled;
 static u8 bytes[0x10000];
 static char response[sizeof(bytes) * 2 + 2];
-static const u8 expected_build[8] = {0xb1,0xf1,0x2f,0xd9,0x19,0xea,0xe8,0x6a};
 
 #ifdef ZA_READER_USB
 // One exact-size bulk transfer per frame avoids short-packet/ZLP ambiguity.
@@ -100,142 +99,6 @@ static Result read_memory(u64 address, void *buffer, size_t size) {
         .buffers = { { buffer, size } });
 }
 
-static bool class_objects(int fd, u64 main_base, u64 descriptor) {
-    u64 pool = 0;
-    Result rc = read_memory(main_base + 0x3EC21C8, &pool, sizeof(pool));
-    if (R_FAILED(rc)) return error_reply(fd, rc);
-    size_t used = 0;
-    // This build's fixed 2^20-entry handle table. Scan locally to avoid sending
-    // 32 MiB of unrelated objects over Wi-Fi. The descriptor was verified on
-    // live actor objects through their +0x2038 core/tag relationship.
-    for (u64 offset = 0; offset < 0x2000000; offset += sizeof(bytes)) {
-        rc = read_memory(pool + 0x10 + offset, bytes, sizeof(bytes));
-        if (R_FAILED(rc)) return error_reply(fd, rc);
-        for (size_t i = 0; i < sizeof(bytes); i += 32) {
-            u64 record[4];
-            memcpy(record, bytes + i, sizeof(record));
-            if ((record[0] & 0xFFFFF) != (offset + i)/32 ||
-                record[1] != main_base + descriptor || !record[2] ||
-                !(record[3] & 0xFFFF) || !(record[3] & 0xFFFF0000) ||
-                (record[3] >> 32) == UINT32_MAX) continue;
-            if (used + 18 >= sizeof(response))
-                return send_all(fd, "ERR too-many-actors\n", 20);
-            used += snprintf(response + used, sizeof(response)-used,
-                             "%016" PRIX64 " ", record[2] - 0x28);
-        }
-    }
-    response[used++] = '\n';
-    return send_all(fd, response, used);
-}
-
-// Identify the serialized action-12800 root using its actual FlatBuffers
-// vtable, version, actor-settings and action-data fields. No process writes.
-static u16 get16(const u8 *p) { u16 x; memcpy(&x,p,2); return x; }
-static u32 get32(const u8 *p) { u32 x; memcpy(&x,p,4); return x; }
-static bool capture_root(const u8 *b,size_t n,size_t at,size_t *root) {
-    if(at+4>n || get32(b+at)!=12800)return false;
-    for(size_t d=4;d<=128&&d<=at;d+=4){
-        size_t t=at-d;
-        if(t+4>n)continue;
-        s32 back;memcpy(&back,b+t,4);
-        s64 v=(s64)t-back;
-        if(v<0||(u64)v+28>n)continue;
-        u16 vl=get16(b+v),ol=get16(b+v+2);
-        if(vl<28||vl>96||(u64)v+vl>n||ol<d+4||ol>512||t+ol>n)continue;
-        if(get16(b+v+24)!=d)continue;
-        u16 ver=get16(b+v+4),actors=get16(b+v+10),actions=get16(b+v+26);
-        if(ver<4||ver+4>ol||get32(b+t+ver)!=6||!actors||!actions)continue;
-        *root=t;return true;
-    }
-    return false;
-}
-static bool capture_templates(int fd,const Metadata *m) {
-    static u8 block[0x10000];
-    size_t used=0;u64 previous=0,scanned=0,address=0;unsigned found=0,maps=0;
-    unsigned regions=0;Result first_error=0;
-    // MapPhysicalMemory allocations may be outside the advertised heap region.
-    // Query actual mappings instead of assuming heap extents contain game data.
-    while(address<0x8000000000ULL){
-        MemoryInfo mi={0};Result rc=serviceDispatchInOut(&dmnt,65104,address,mi);
-        if(R_FAILED(rc))return error_reply(fd,rc);
-        if(!mi.size||mi.addr>address||mi.addr>UINT64_MAX-mi.size)
-            return send_all(fd,"ERR mapping-layout\n",19);
-        u64 end=mi.addr+mi.size;
-        if(end<=address)return send_all(fd,"ERR mapping-order\n",18);
-        if(++maps>16384)return send_all(fd,"ERR mapping-limit\n",18);
-        if((mi.perm&3)==3 && !(mi.perm&4)){
-            regions++;
-            for(u64 at=mi.addr;at<end;){
-                size_t len=(size_t)(end-at);if(len>sizeof(block))len=sizeof(block);
-                rc=read_memory(at,block,len);
-                if(R_FAILED(rc)){if(!first_error)first_error=rc;}
-                else{
-                    scanned+=len;
-                    for(size_t i=0;i+4<=len;i+=4){
-                        size_t root=0;if(!capture_root(block,len,i,&root))continue;
-                        u64 hit=at+root;if(hit==previous)continue;
-                        if(found>=64)return send_all(fd,"ERR too-many-templates\n",23);
-                        previous=hit;found++;
-                        used+=snprintf(response+used,sizeof(response)-used,"%016" PRIX64 " ",hit);
-                    }
-                }
-                if(end-at<=sizeof(block))break;
-                at+=sizeof(block)-0x1000;
-            }
-        }
-        address=end;
-    }
-    (void)m;
-    used+=snprintf(response+used,sizeof(response)-used,"count=%u regions=%u scanned=%" PRIu64 " error=%08X\n",found,regions,scanned,first_error);
-    return send_all(fd,response,used);
-}
-
-// Locate the two exact name keys used by this build's reticle page factories.
-// This inspects writable mappings without modifying UI state or attaching a
-// second debugger. Each aligned word is visited once; replies are bounded.
-static bool reticle_names(int fd,const Metadata *m) {
-    const u64 page_key=0x5456B662AE6F57E7ULL;
-    const u64 layout_key=0x81B471D8FC944CEBULL; // gitleaks:allow -- fixed game UI identifier, not a credential
-    size_t used=0;u64 scanned=0,address=0;unsigned found=0,maps=0,regions=0;
-    Result first_error=0;
-    while(address<0x8000000000ULL){
-        MemoryInfo mi={0};Result rc=serviceDispatchInOut(&dmnt,65104,address,mi);
-        if(R_FAILED(rc))return error_reply(fd,rc);
-        if(!mi.size||mi.addr>address||mi.addr>UINT64_MAX-mi.size)
-            return send_all(fd,"ERR mapping-layout\n",19);
-        u64 end=mi.addr+mi.size;
-        if(end<=address)return send_all(fd,"ERR mapping-order\n",18);
-        if(++maps>16384)return send_all(fd,"ERR mapping-limit\n",18);
-        if((mi.perm&3)==3 && !(mi.perm&4)){
-            regions++;
-            for(u64 at=mi.addr;at<end;){
-                size_t len=(size_t)(end-at);if(len>sizeof(bytes))len=sizeof(bytes);
-                rc=read_memory(at,bytes,len);
-                if(R_FAILED(rc)){if(!first_error)first_error=rc;}
-                else{
-                    scanned+=len;
-                    for(size_t i=0;i+8<=len;i+=8){
-                        u64 key;memcpy(&key,bytes+i,sizeof(key));
-                        if(key!=page_key && key!=layout_key &&
-                           key!=m->main.base+0x3DBB348 &&
-                           key!=m->main.base+0x3DBB620)continue;
-                        if(found>=512)return send_all(fd,"ERR too-many-reticle-names\n",27);
-                        found++;
-                        used+=snprintf(response+used,sizeof(response)-used,
-                            "%016" PRIX64 ":%016" PRIX64 " ",at+i,key);
-                    }
-                }
-                at+=len;
-            }
-        }
-        address=end;
-    }
-    used+=snprintf(response+used,sizeof(response)-used,
-        "count=%u regions=%u scanned=%" PRIu64 " error=%08X\n",
-        found,regions,scanned,first_error);
-    return send_all(fd,response,used);
-}
-
 static bool command(int fd, const char *line) {
     if (!strcmp(line, "getTransport")) {
 #ifdef ZA_READER_USB
@@ -268,8 +131,6 @@ static bool command(int fd, const char *line) {
     Metadata m = {0};
     Result rc = metadata(&m);
     if (R_FAILED(rc)) return error_reply(fd, rc);
-    const bool za_build = m.title_id == 0x0100F43008C44000ULL &&
-                          !memcmp(m.build_id, expected_build, sizeof(expected_build));
 #ifndef ZA_READER_RESIDENT
     if (!strcmp(line, "getPausedCapture")) {
         // Read AM's existing last-application frame. Do not call either update
@@ -287,24 +148,6 @@ static bool command(int fd, const char *line) {
         return send_all(fd,header,(size_t)len) && send_all(fd,(const char*)half,sizeof(half));
     }
 #endif
-    // These object layouts and addresses are specific to this exact Z-A build.
-    // Generic metadata and byte reads below operate on dmnt's current process.
-    const bool za_command = !strcmp(line, "findCaptureTemplates") ||
-                            !strcmp(line, "findReticleNames") ||
-                            !strcmp(line, "getActors") ||
-                            !strcmp(line, "getTagComponents") ||
-                            !strncmp(line, "findClass ", 10);
-    if (za_command && !za_build)
-        return send_all(fd, "ERR wrong-game-or-build\n", 24);
-    if (!strcmp(line, "findCaptureTemplates")) return capture_templates(fd, &m);
-    if (!strcmp(line, "findReticleNames")) return reticle_names(fd, &m);
-    if (!strcmp(line, "getActors")) return class_objects(fd, m.main.base, 0x3CE2B18);
-    if (!strcmp(line, "getTagComponents")) return class_objects(fd, m.main.base, 0x3C957E0);
-    char lookup[24], extra_lookup;
-    uint64_t descriptor;
-    if (sscanf(line, "%23s %" SCNx64 " %c", lookup, &descriptor, &extra_lookup) == 2 &&
-        !strcmp(lookup, "findClass") && descriptor >= 0x3BC2000 && descriptor < 0x3F7F000)
-        return class_objects(fd, m.main.base, descriptor);
     if (!strcmp(line, "getTitleID"))
         snprintf(response, sizeof(response), "%016" PRIX64 "\n", m.title_id);
     else if (!strcmp(line, "getProcessID"))
@@ -324,7 +167,7 @@ static bool command(int fd, const char *line) {
     else if (!strcmp(line, "getHeapSize"))
         snprintf(response, sizeof(response), "%016" PRIX64 "\n", m.heap.size);
     else if (!strcmp(line, "getVersion"))
-        strcpy(response, "za-dmnt-reader-0.1.0\n");
+        strcpy(response, "switch-control-reader-0.1.0\n");
     else {
         char operation[24], extra;
         uint64_t address, size;
@@ -381,9 +224,9 @@ int main(void) {
     const UsbCommsInterfaceInfo usb_info = {0xFF, 0x5A, 0x01};
     Result usb_rc = R_SUCCEEDED(rc) ? usbCommsInitializeEx(1, &usb_info, 0x057e, 0x3000) : rc;
     usb_ready = R_SUCCEEDED(usb_rc);
-    printf("Z-A USB Reader\n\nRead-only diagnostics; cheats remain active.\n");
+    printf("Switch Control USB Reader\n\nRead-only diagnostics; cheats remain active.\n");
     printf("dmnt: %08X   USB: %08X\n", rc, usb_rc);
-    printf("Connect directly to the Mac. No network is opened.\nPress + to exit.\n");
+    printf("Connect directly to the USB host. No network is opened.\nPress + to exit.\n");
     printf("Sleep request: %08X query: %08X disabled: %u\n",
            sleep_set_result, sleep_query_result, sleep_disabled);
     char line[256];
@@ -457,7 +300,7 @@ int main(void) {
             close(server); server = -1;
         } else fcntl(server, F_SETFL, O_NONBLOCK);
     }
-    printf("Z-A Template Reader\n\nRead-only trainer-capture diagnostics.\n");
+    printf("Switch Control Memory Reader\n\nRead-only process diagnostics.\n");
     printf("Cheats remain active; no game memory is changed.\n\n");
     printf("dmnt: %08X   network: %08X\n", rc, network_rc);
     printf("Sleep request: %08X  query: %08X  disabled: %u\n",
