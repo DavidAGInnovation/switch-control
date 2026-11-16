@@ -11,8 +11,9 @@ def confirmation(host,key,op):
     with socket.create_connection((host,6015),timeout=10) as s:
         nonce=receive_exact(s,32);data=op.encode().ljust(8,b'\0');s.sendall(data+hmac.digest(key,nonce+data,'sha256'));return s.recv(256).decode().strip()
 
-def health(host,key,tls,expected,version='0.5.0'):
+def health(host,key,tls,expected,version='0.5.1'):
     import base64,ssl
+    version_tuple=tuple(map(int,version.split('.')))
     info=json.loads(command(host,key,tls,'getApiInfo'));pem=base64.b64decode(info['certificate_base64'],validate=True)
     if hashlib.sha256(ssl.PEM_cert_to_DER_cert(pem.decode())).hexdigest()!=info['certificate_sha256']:raise ValueError('Certificate mismatch')
     with tempfile.TemporaryDirectory() as t:
@@ -24,14 +25,14 @@ def health(host,key,tls,expected,version='0.5.0'):
         tools=json.loads(client.request('POST','/mcp',{'jsonrpc':'2.0','id':2,'method':'tools/list'}))
         if not any(x['name']=='set_stick' for x in tools['result']['tools']):raise ValueError('Missing native tools')
         client.request('POST','/input/stick',{'side':'left','x':0,'y':0,'duration_ms':1})
-        if version in ('0.4.0','0.5.0'):
+        if version_tuple >= (0,4,0):
             lifecycle=json.loads(client.request('GET','/lifecycle'))
             if not lifecycle.get('power_registered') or lifecycle.get('power_result'):raise ValueError('Power lifecycle registration failed')
             action=json.loads(client.request('POST','/input/hold',{'lease_ms':1000}))
             if not action.get('active') or 'action' not in action:raise ValueError('Leased input unavailable')
             ended=json.loads(client.request('POST','/input/cancel',{'action':action['action']}))
             if ended.get('active') or ended.get('state')!='cancelled':raise ValueError('Input cleanup failed')
-        if version=='0.5.0':
+        if version_tuple >= (0,5,0):
             clock=json.loads(client.request('GET','/settings/datetime'))
             if not isinstance(clock.get('timestamp'),int) or not isinstance(clock.get('automatic_sync'),bool):raise ValueError('Clock read unavailable')
             if any(x['name']=='set_dns' for x in tools['result']['tools']) is False:raise ValueError('DNS control missing')

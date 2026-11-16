@@ -7,7 +7,7 @@ TARGET := switch-control-setup
 BUILD := build
 APP_TITLE := Switch Control Setup
 APP_AUTHOR := Switch tools
-APP_VERSION := 0.5.0
+APP_VERSION := 0.5.1
 ARCH := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS := -g -O2 -Wall -Wextra -Werror -ffunction-sections $(ARCH) -I$(LIBNX)/include
 LDFLAGS := -specs=$(LIBNX)/switch.specs -g $(ARCH) -Wl,-Map,$(TARGET).map

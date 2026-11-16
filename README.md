@@ -4,7 +4,7 @@ Control an Atmosphère Nintendo Switch over your local network. HTTPS REST and
 Streamable HTTP MCP run directly on the console: no PC bridge or cloud service
 is needed. A Python command-line client is included.
 
-[Download v0.5.0](https://github.com/DavidAGInnovation/switch-control/releases/tag/v0.5.0)
+[Download v0.5.1](https://github.com/DavidAGInnovation/switch-control/releases/tag/v0.5.1)
 · [Installation and API](docs/RELEASE.md) · [License notices](docs/THIRD_PARTY.md)
 
 ## Features
@@ -96,9 +96,11 @@ The service has been tested on one physical Switch running HOS 23.0.1. Live
 checks covered HTTPS/MCP, discovery, controller cleanup and leases, transfers
 above 64 MiB, cancellation, sleep/wake recovery, system settings, automatic DNS
 profile writes and clock writes with synchronization restored afterward. Manual
-DNS address changes are covered by host tests. Reboot startup for v0.5.0, other
-console/firmware combinations, a second physical client and the full 8 GiB file
-ceiling have not yet been exercised.
+DNS address changes are covered by host tests. Those hardware checks used
+v0.5.0. Version 0.5.1 removes game-specific reader commands and reorganizes the
+project; it is validated by the full host suite and Switch build. Reboot startup,
+other console/firmware combinations, a second physical client and the full 8 GiB
+file ceiling have not yet been exercised.
 
 Files use bounded chunks and cooperative verification. The 8 GiB ceiling is
 subject to filesystem limits (FAT32 limits individual files to less than 4 GiB).

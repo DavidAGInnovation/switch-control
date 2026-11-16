@@ -386,7 +386,7 @@ static bool dispatch(int fd, const char *line) {
     }
     char op[32],arg[224],extra;u64 mask;
     if(!strcmp(line,"getTransport")) {const char *s=fd<0?"USB ZAU1 frame=4096 payload=4092 resident-read-only\n":"TCP ZAW1 authenticated resident-read-only\n";return send_all(fd,s,strlen(s));}
-    if(!strcmp(line,"getVersion"))return send_all(fd,"switch-control-0.5.0\n",21);
+    if(!strcmp(line,"getVersion"))return send_all(fd,"switch-control-0.5.1\n",21);
     if(!strcmp(line,"getReaderStatus")) {
         char s[240];int n=snprintf(s,sizeof(s),"RESIDENT uptime_ms=%" PRIu64 " firmware=%u.%u.%u controller=%u stage=%u stage_rc=%08X cleanup=%08X startup=%08X memory-read-only=1\n",
             armTicksToNs(svcGetSystemTick()-reader_started)/1000000,

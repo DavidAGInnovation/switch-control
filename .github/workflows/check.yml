@@ -37,7 +37,7 @@ jobs:
       - name: Build SD install package
         run: python scripts/assemble_release.py "$RUNNER_TEMP/release" --mbedtls-root "$RUNNER_TEMP/mbedtls-switch"
       - name: Bundle matching dependency source
-        run: python scripts/dependency_source.py "$RUNNER_TEMP/mbedtls-switch" "$RUNNER_TEMP/release/switch-control-0.5.0-mbedtls-source.tar.gz"
+        run: python scripts/dependency_source.py "$RUNNER_TEMP/mbedtls-switch" "$RUNNER_TEMP/release/switch-control-0.5.1-mbedtls-source.tar.gz"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-build

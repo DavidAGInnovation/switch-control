@@ -20,7 +20,7 @@ BACKEND=r'''static char last_command[2048];
 static bool dispatch(int fd,const char *line){
  if(!strcmp(line,"getApiInfo"))return api_info(fd);
  if(!strncmp(line,"fs",2))return sd_files_command(fd,line);
- if(!strcmp(line,"systemStatus")){char out[2200];snprintf(out,sizeof(out),"{\"version\":\"0.5.0\",\"last\":\"%s\"}\n",last_command);return send_all(fd,out,strlen(out));}
+ if(!strcmp(line,"systemStatus")){char out[2200];snprintf(out,sizeof(out),"{\"version\":\"0.5.1\",\"last\":\"%s\"}\n",last_command);return send_all(fd,out,strlen(out));}
  if(!strcmp(line,"pixelPeek"))return send_all(fd,"JPEG 4\n\xff\xd8\xff\xd9",11);
  strncpy(last_command,line,sizeof(last_command)-1);return send_all(fd,"OK\n",3);
 }

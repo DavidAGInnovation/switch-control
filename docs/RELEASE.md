@@ -1,4 +1,4 @@
-# Switch Control 0.5.0 — installation and API
+# Switch Control 0.5.1 — installation and API
 
 The service runs directly on the Switch. Start with the installation steps in
 [README.md](../README.md); the public release uses SD-card installation.

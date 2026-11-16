@@ -32,7 +32,7 @@ static size_t disc_response(const unsigned char *query,size_t length,unsigned ch
     memset(out,0,12);out[2]=0x84;size_t used=12;if(legacy){out[0]=query[0];out[1]=query[1];disc_put16(out+4,count);memcpy(out+12,query+12,at-12);used=at;}
     unsigned char data[300];size_t n=0;if(!disc_encode(data,&n,sizeof(data),disc_instance)||!disc_record(out,&used,DISC_SERVICE,12,legacy,data,n))return 0;
     memset(data,0,6);disc_put16(data+4,6012);n=6;if(!disc_encode(data,&n,sizeof(data),disc_host)||!disc_record(out,&used,disc_instance,33,legacy,data,n))return 0;
-    const char *txt[]={"version=0.5.0","auth=tls-psk","path=control","protocol=zaw1","https=7443","mcp=/mcp"};n=0;for(unsigned i=0;i<6;i++){size_t k=strlen(txt[i]);data[n++]=(unsigned char)k;memcpy(data+n,txt[i],k);n+=k;}
+    const char *txt[]={"version=0.5.1","auth=tls-psk","path=control","protocol=zaw1","https=7443","mcp=/mcp"};n=0;for(unsigned i=0;i<6;i++){size_t k=strlen(txt[i]);data[n++]=(unsigned char)k;memcpy(data+n,txt[i],k);n+=k;}
     if(!disc_record(out,&used,disc_instance,16,legacy,data,n)||!disc_record(out,&used,disc_host,1,legacy,(const unsigned char*)&disc_ip,4))return 0;
     disc_put16(out+6,4);return used;
 }

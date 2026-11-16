@@ -11,7 +11,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE = 'devkitpro/devkita64:20260219@sha256:1fc388c3a0d34bd2045a6dadcb1020e069d5f876a187fd705de14b4440c00282'
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 
 def assemble(output, mbed):
     output = Path(output).resolve()

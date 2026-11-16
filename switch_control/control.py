@@ -4,7 +4,7 @@ from pathlib import Path
 from .wifi_tls_controller import command
 from .sd_files import Files,path_arg,FileError
 from .discovery import discover
-VERSION='0.5.0'
+VERSION='0.5.1'
 BUTTONS={'A','B','X','Y','L','R','ZL','ZR','PLUS','MINUS','UP','DOWN','LEFT','RIGHT','LSTICK','RSTICK','HOME','CAPTURE'}
 ALIASES={'UP':'DUP','DOWN':'DDOWN','LEFT':'DLEFT','RIGHT':'DRIGHT'}
 

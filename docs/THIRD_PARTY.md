@@ -38,8 +38,8 @@ for the NetBSD Project.
 
 Project source is included in the SD release ZIP and the tagged GitHub source
 archives. The full pinned libnx tree is supplied as
-`switch-control-0.5.0-libnx-source.tar.gz`; additional file notices are collected
-in `licenses/libnx-NOTICES`. The release also provides `switch-control-0.5.0-mbedtls-source.tar.gz`
+`switch-control-0.5.1-libnx-source.tar.gz`; additional file notices are collected
+in `licenses/libnx-NOTICES`. The release also provides `switch-control-0.5.1-mbedtls-source.tar.gz`
 with the exact tracked Mbed TLS and framework files used for the build, including
 the modified configuration header. `scripts/dependency_source.py` recreates this
 archive from the prepared tree. No compiled library objects or Git metadata are
