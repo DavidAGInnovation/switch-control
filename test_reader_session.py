@@ -16,7 +16,8 @@ static bool command_result=true;
 static bool serviceIsActive(Service*s){return s->active;}
 static void serviceClose(Service*s){assert(s->active);s->active=false;closes++;}
 static Result smGetService(Service*s,const char*n){assert(!strcmp(n,"dmnt:cht"));opens++;
-    if(open_error)return open_error;assert(!s->active);s->active=true;return 0;}
+    if(open_error){return open_error;}
+    assert(!s->active);s->active=true;return 0;}
 static bool error_reply(int fd,Result rc){(void)fd;assert(rc==17);errors++;return false;}
 static bool command(int fd,const char*line){(void)fd;(void)line;assert(dmnt.active);commands++;return command_result;}
 '''

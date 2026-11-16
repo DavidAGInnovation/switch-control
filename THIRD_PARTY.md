@@ -13,7 +13,7 @@ copyright notices are preserved in `licenses/` and in every release ZIP.
 | Component | Pinned version/source | License treatment |
 | --- | --- | --- |
 | Mbed TLS | 3.6.7, `068ff080b369adfac81509f9b57b2afabaf82dc5` | Upstream offers Apache-2.0 OR GPL-2.0-or-later; distributed here under the latter, choosing GPLv3 for the combined program. Full dual-license notice retained. |
-| libnx | 4.12.0, `7644c9b26099aa2d2145bc72a21ee24190e92085` | ISC; full copyright/permission notice retained. |
+| libnx | 4.12.0, `7644c9b26099aa2d2145bc72a21ee24190e92085` | ISC, with BSD/ISC notices in imported networking headers; full notices retained. |
 | newlib / libm | devkitA64 package 4.6.0.20260123-4 | Collection of permissive notices; full `COPYING.NEWLIB` retained. Source files can carry additional notices. |
 | GCC runtime | devkitA64 GCC 15.2.0-7 | GPLv3 with GCC Runtime Library Exception 3.1; both GPLv3 and the exception are supplied. |
 
@@ -26,7 +26,9 @@ OpenSSL; those host libraries are not linked into the Switch release.
 ## Corresponding source and modifications
 
 Project source is included in the SD release ZIP and the tagged GitHub source
-archives. The release also provides `switch-control-0.5.0-mbedtls-source.tar.gz`
+archives. The full pinned libnx tree is supplied as
+`switch-control-0.5.0-libnx-source.tar.gz`; additional file notices are collected
+in `licenses/libnx-NOTICES`. The release also provides `switch-control-0.5.0-mbedtls-source.tar.gz`
 with the exact tracked Mbed TLS and framework files used for the build, including
 the modified configuration header. `scripts/dependency_source.py` recreates this
 archive from the prepared tree. No compiled library objects or Git metadata are
